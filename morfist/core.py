@@ -181,9 +181,7 @@ class MixedRandomTree(object):
 		y_ = np.zeros(self.n_targets)
 		for i in range(self.n_targets):
 			if i in self.class_targets:
-				y_[i] = scipy.stats.mode(y[:, i])[0]
-				#y_[i] = np.bincount(y[:, i], minlength=self.class_targets[i].size)
-				#y_[i] /= y.shape[0]
+				y_[i] = np.argmax(np.bincount(y[:, i].astype(int)))
 			else:
 				y_[i] = y[:, i].mean()
 		return y_
@@ -265,7 +263,8 @@ class MixedRandomForest(object):
 		pred_avg = np.zeros((n_test, self.n_targets))
 		for i in range(self.n_targets):
 			if i in self.class_targets:
-				pred_avg[:, i] = scipy.stats.mode(pred[:, i, :].T)[0]
+				pred_avg[:, i], _ = scipy.stats.mode(pred[:, i, :].T)
+				#pred_avg[:, i] = np.argmax(np.bincount(pred[:, i, :]))
 			else:
 				pred_avg[:, i] = pred[:, i, :].mean(axis=1)
 
@@ -291,7 +290,7 @@ class MixedRandomForest(object):
 
 
 def acc(y, y_hat):
-	return (y == y_hat).sum() / y.size
+	return (y.astype(int) == y_hat.astype(int)).sum() / y.size
 
 def rmse(y, y_hat):
 	return np.sqrt(((y - y_hat) ** 2).mean())
@@ -336,8 +335,8 @@ def cross_validation(model,
 	scores = np.zeros(y.shape[1])
 	for i in range(y.shape[1]):
 		if i in class_targets:
-			scores[i] = class_eval(y, y_hat)
+			scores[i] = class_eval(y[:, i], y_hat[:, i])
 		else:
-			scores[i] = reg_eval(y, y_hat)
+			scores[i] = reg_eval(y[:, i], y_hat[:, i])
 
 	return scores
