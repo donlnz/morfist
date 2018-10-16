@@ -10,7 +10,8 @@ n_trees = 11
 # Data
 x_reg, y_reg = load_boston(return_X_y=True)
 x_cls, y_cls = load_breast_cancer(return_X_y=True)
-x_mix, y_mix = x_reg, np.vstack([y_reg, y_reg < y_reg.mean()]).T
+x_mix_1, y_mix_1 = x_reg, np.vstack([y_reg, y_reg < y_reg.mean()]).T
+x_mix_2, y_mix_2 = x_cls, np.vstack([y_cls, y_cls]).T
 
 mix_rf = MixedRandomForest(
 	n_estimators=n_trees,
@@ -69,7 +70,7 @@ def test_reg():
 	print('\tmorfist (rmse): {}'.format(reg_scores.mean()))
 	print('\tscikit-learn (rmse): {}'.format(np.sqrt(-scores.mean())))
 
-def test_mix():
+def test_mix_1():
 	mix_rf = MixedRandomForest(
 		n_estimators=n_trees,
 		min_samples_leaf=5,
@@ -78,18 +79,38 @@ def test_mix():
 
 	mix_scores = cross_validation(
 		mix_rf,
-		x_mix,
-		y_mix,
+		x_mix_1,
+		y_mix_1,
 		folds=10,
 		class_targets=[1]
 	)
 	print('Mixed output: ')
-	print('\tmorfist (rmse): {}'.format(mix_scores[0]))
-	print('\tmorfist (accuracy): {}'.format(mix_scores[1]))
+	print('\ttask 1 (original) (rmse): {}'.format(mix_scores[0]))
+	print('\ttask 2 (additional) (accuracy): {}'.format(mix_scores[1]))
+
+def test_mix_2():
+	mix_rf = MixedRandomForest(
+		n_estimators=n_trees,
+		min_samples_leaf=1,
+		class_targets=[0]
+	)
+
+	mix_scores = cross_validation(
+		mix_rf,
+		x_mix_2,
+		y_mix_2,
+		folds=10,
+		class_targets=[0]
+	)
+	print('Mixed output: ')
+	print('\ttask 1 (original) (accuracy): {}'.format(mix_scores[0]))
+	print('\ttask 2 (additional) (rmse): {}'.format(mix_scores[1]))
 
 if __name__ == '__main__':
 	test_class()
 	print('')
 	test_reg()
 	print('')
-	test_mix()
+	test_mix_1()
+	print('')
+	test_mix_2()
