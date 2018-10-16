@@ -13,12 +13,6 @@ x_cls, y_cls = load_breast_cancer(return_X_y=True)
 x_mix_1, y_mix_1 = x_reg, np.vstack([y_reg, y_reg < y_reg.mean()]).T
 x_mix_2, y_mix_2 = x_cls, np.vstack([y_cls, y_cls]).T
 
-mix_rf = MixedRandomForest(
-	n_estimators=n_trees,
-	min_samples_leaf=5,
-	class_targets=[1]
-)
-
 def test_class():
 	cls_rf = MixedRandomForest(
 		n_estimators=n_trees,
